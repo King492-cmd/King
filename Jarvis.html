@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MK Assistant</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      background: #000000;
+    }
+    .box {
+      width: 100%;
+      height: 100%;
+      margin-top: 30%;
+      background: #000000;
+    }
+    img {
+      width: 200px;
+      height: 300px;
+      border-radius: 50px;
+    }
+    p {
+      color: #08CBEB;
+      font-size: 25px;
+      animation: fadeColorChange 3s infinite alternate ease-in-out;
+      font-weight: bold;
+    }
+    .spn2 {
+      color: #C90CEB;
+    }
+    .gif {
+      width: 180px;
+      height: 180px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(to right, #00FFFF, #FF00FF);
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    button:hover {
+      box-shadow: 0 5px 15px rgba(0, 255, 255, 0.5);
+      transform: translateY(-3px);
+    }
+    button:active {
+      transform: translateY(3px);
+    }
+    button::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      transform: scale(1);
+      opacity: 0;
+      pointer-events: none;
+      animation: none;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    button:active::after {
+      transform: scale(15);
+      opacity: 0;
+      animation: ripple 0.6s ease-out;
+    }
+    @keyframes ripple {
+      from {
+        transform: scale(9);
+        opacity: 5;
+      }
+      to {
+        transform: scale(25);
+        opacity: 0;
+      }
+    }
+    @keyframes fadeColorChange {
+      0% {
+        opacity: 600;
+        color: #FF00FF;
+        transform: translateX(10px);
+      }
+      50% {
+        opacity: 0;
+        color: #00FFFF;
+        transform: translateY(0);
+      }
+      100% {
+        opacity: 600;
+        color: #FF00FF;
+        transform: translateX(-10px);
+      }
+    }
+    @keyframes jump {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .jump-text {
+      display: inline-flex;
+      font-weight: bold;
+    }
+    .jump-text span {
+      display: inline-block;
+      animation: jump 0.5s ease-in-out infinite;
+    }
+    .jump-text span:nth-child(1) { animation-delay: 0s; color: #A614C8; font-size: 70px; }
+    .jump-text span:nth-child(2) { animation-delay: 0.1s; color: #A614C8; font-size: 70px; }
+    .jump-text span:nth-child(3) { animation-delay: 0.2s; color: #A614C8; font-size: 70px; }
+    .jump-text span:nth-child(4) { animation-delay: 0.3s; color: #0DC6E4; font-size: 60px; }
+    .jump-text span:nth-child(5) { animation-delay: 0.4s; color: #0DC6E4; font-size: 60px; }
+    .jump-text span:nth-child(6) { animation-delay: 0.5s; color: #0DC6E4; font-size: 60px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <img src="/Jarvis.png" alt="img">
+    <br />
+    <h1 class="jump-text">
+      <span>J</span>
+      <span>A</span>
+      <span>R</span>
+      <span>V</span>
+      <span>I</span>
+      <span>S</span>
+    </h1>
+    <p id="response">I'm Your virtual <span class="spn2">Assistant</span></p>
+    <img class="gif" src="/Assistant.gif" alt="gif">
+    <br />
+    <button id="speakButton" type="submit">Tap to speak</button>
+  </div>
+
+  <script>
+    const speakButton = document.getElementById('speakButton');
+    const responseText = document.getElementById('response');
+
+    function speak(text) {
+      const synth = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-IN';
+      synth.speak(utterance);
+    }
+
+    function getCurrentTimestamp() {
+      return new Date().getTime();
+    }
+
+    function timeDifferenceInMinutes(lastVisit) {
+      const currentTime = getCurrentTimestamp();
+      return Math.floor((currentTime - lastVisit) / (1000 * 60));
+    }
+
+    function greetUser() {
+      const lastVisit = localStorage.getItem('lastVisit');
+      const currentTime = getCurrentTimestamp();
+
+      if (!lastVisit) {
+        const greeting = "Welcome boss, I can help you!";
+        speak(greeting);
+        responseText.textContent = greeting;
+      } else {
+        const minutesElapsed = timeDifferenceInMinutes(lastVisit);
+        if (minutesElapsed >= 30) {
+          const greeting = "Welcome back boss!";
+          speak(greeting);
+          responseText.textContent = greeting;
+        } else {
+          const greeting = "Welcome Boss!";
+          speak(greeting);
+          responseText.textContent = greeting;
+        }
+      }
+
+      localStorage.setItem('lastVisit', currentTime);
+    }
+
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-IN';
+
+      recognition.onstart = () => {
+        responseText.textContent = "Listening...";
+      };
+
+      recognition.onresult = (event) => {
+        const userInput = event.results[0][0].transcript;
+        responseText.textContent = `You said: "${userInput}"`;
+
+        const command = userInput.toLowerCase();
+
+   if (
+  command.includes("hello") ||
+  command.includes("hey jarvis") ||
+  command.includes("hello jarvis") ||
+  command === "jarvis" ||
+  command.includes("hi jarvis")
+) {
+  speak("Hello sir! How can I help you?");
+}else if (
+  command.includes("kaise ho jarvis") ||
+  command.includes("kya haal hai jarvis") ||
+  command.includes("kay haal hai jarvis") ||
+  command.includes("hal chal jarvis") ||
+  command.includes("jarvis kaise ho")
+) {
+  speak("Main theek hoon, aap kaise hain sir?");
+}     else if (command.includes("your name")) {
+          speak("I am Jarvis, your virtual assistant.");
+        } else if (command.includes("my name")) {
+          speak("Your name is, MK KING");
+        } 
+        else if (command.includes("open google")) {
+          speak("Opening Google.");
+          window.open("https://www.google.com", "_blank");
+        } else if (command.includes("open youtube")) {
+          speak("Opening YouTube, boss.");
+          window.open("https://www.youtube.com", "_blank");
+        } else if (command.includes("open calculator")) {
+          speak("Opening calculator.");
+          window.open("https://www.google.com/search?q=calculator", "_blank");
+        } else if (command.includes("play song")) {
+          speak("Playing song.");
+          window.location.href = "https://youtu.be/bGx47L5lcbE?si=XFIQtfJ1TyuX-8Wv";
+        } else if (command.includes("play next song")) {
+          speak("Playing next song.");
+          window.location.href = "https://youtu.be/mm2v5Wiq2XI?si=ogsfPn_3lPZH4m3J";
+        } else if (command.includes("play sad songs")) {
+        speak("playing sad  songs.");
+        window.location.href = "https://youtube.com/playlist?list=RDbGx47L5lcbE&playnext=1&si=d2QlKD-u4F8OT7DV";
+        }else if (command.includes("open instagram")) {
+          speak("Opening Instagram");
+          window.open("https://www.instagram.com", "_blank");
+        } else if (
+  command.includes("call sartaj") ||
+  command.includes("calling sartaj") ||
+  command.includes("call you sartaj") ||
+  command.includes("call taj") ||
+  command.includes("call by taj") ||
+  command.includes("calling by sartaj") ||
+  (
+    (command.includes("call") || command.includes("call karo") || command.includes("ko call karo")) &&
+    (command.includes("sartaj") || command.includes("taj"))
+  )
+) {
+  let name = "";
+  let lang = "en";
+
+  if (command.includes("sartaj")) {
+    name = "Sartaj";
+  } else if (command.includes("taj")) {
+    name = "Taj";
+  }
+
+  // Check if command is in Hindi
+  if (command.includes("ko call karo")) {
+    lang = "hi";
+  }
+
+  if (lang === "hi") {
+    speak(`${name} ko call kar rahi hoon, boss`);
+  } else {
+    speak(`Calling by ${name}, sir`);
+  }
+
+  if (confirm(`Call ${name}?`)) {
+    window.location.href = "tel:9076780740";
+  }
+        } else if (command.includes("open whatsapp")) {
+  speak("Opening WhatsApp");
+
+  // Try to open WhatsApp app
+  window.location.href = "whatsapp://send?text=Hello";
+        } else if (command.includes("open facebook")) {
+  speak("Opening facebook");
+  
+  // Try to open WhatsApp app
+  window.location.href = "facebook://send?text=Hello";
+        } else if (command.includes("open fb profile")) {
+          speak("OK sir");
+          window.location.href = "facebook//send?text=Hello:";
+        } else if (command.includes("my phone number")) {
+          speak("Your phone number is 8795163264");
+        } else if (command.includes("open instagram")) {
+  speak("Opening Instagram");
+  window.location.href = "instagram://send?text=Hello";
+} else if (command.includes("open gmail")) {
+  speak("Opening Gmail");
+  window.location.href = "gamil://send?text=Hello";
+} else if (command.includes("open youtube")) {
+  speak("Opening YouTube");
+  window.location.href = "https://www.youtube.com";
+}
+
+else if (command.includes("open google")) {
+  speak("Opening Google");
+  window.location.href = "https://www.google.com";
+}
+
+else if (command.includes("open drive")) {
+  speak("Opening Google Drive");
+  window.location.href = "https://drive.google.com";
+}
+
+else if (command.includes("open whatsapp")) {
+  speak("Opening WhatsApp");
+  window.location.href = "whatsapp://send?text=Hello";
+}
+
+else if (command.includes("open calendar")) {
+  speak("Opening Calendar");
+  window.location.href = "https://calendar.google.com";
+}
+
+else if (command.includes("open maps")) {
+  speak("Opening Google Maps");
+  window.location.href = "https://www.google.com/maps";
+}
+
+else if (command.includes("open meet")) {
+  speak("Opening Google Meet");
+  window.location.href = "https://meet.google.com";
+}
+
+else if (command.includes("open files")) {
+  speak("Opening Files");
+  window.location.href = "file:///storage/emulated/0/";
+}
+
+else if (command.includes("open keep notes")) {
+  speak("Opening Keep Notes");
+  window.location.href = "https://keep.google.com";
+}
+
+else if (command.includes("open jiohotstar")) {
+  speak("Opening JioHotstar");
+  window.location.href = "https://www.hotstar.com";
+}
+
+else if (command.includes("open dailyhunt")) {
+  speak("Opening DailyHunt");
+  window.location.href = "https://m.dailyhunt.in";
+}
+
+else if (command.includes("open gpay")) {
+  speak("Opening Google Pay");
+  window.location.href = "https://pay.google.com";
+} 
+        else {
+          speak("Sorry sir, this command is not available.");
+        } 
+      };
+
+      recognition.onerror = (event) => {
+        responseText.textContent = "Error occurred: " + event.error;
+      };
+
+      recognition.start();
+    }
+
+    speakButton.addEventListener('click', () => {
+      startListening();
+    });
+
+    window.onload = () => {
+      greetUser();
+    };
+    
+    function login() {
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("jarvisApp").style.display = "block";
+  speak("Welcome. Jarvis is ready.");
+}
+
+  </script>
+</body>
+</html>
